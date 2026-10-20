@@ -59,7 +59,12 @@ JNIEXPORT jint JNICALL Java_org_angelscript_ScriptContext_nativeExecute(JNIEnv *
                                                                         jobject thiz) {
     (void)env;
     asIScriptContext *ctx = ContextOf(GetPtr(env, thiz));
-    return ctx == nullptr ? asERROR : ctx->Execute();
+    if (ctx == nullptr) {
+        return asERROR;
+    }
+    const int r = ctx->Execute();
+    ReleasePendingStrings(ctx);
+    return r;
 }
 
 JNIEXPORT jint JNICALL Java_org_angelscript_ScriptContext_nativeAbort(JNIEnv *env, jobject thiz) {
@@ -208,6 +213,23 @@ JNIEXPORT jint JNICALL Java_org_angelscript_ScriptContext_nativeSetArgVarType(JN
         return asERROR;
     }
     return ctx->SetArgVarType(arg, reinterpret_cast<void *>(static_cast<intptr_t>(ptr)), typeId);
+}
+
+JNIEXPORT jint JNICALL Java_org_angelscript_ScriptContext_nativeSetArgString(JNIEnv *env,
+                                                                            jobject thiz,
+                                                                            jint arg,
+                                                                            jstring value) {
+    asIScriptContext *ctx = ContextOf(GetPtr(env, thiz));
+    if (ctx == nullptr) {
+        return asERROR;
+    }
+    const std::string text = ToUtf8(env, value);
+    const void *constant = CreateStringConstant(ctx->GetEngine(), text);
+    if (constant == nullptr) {
+        return asINVALID_TYPE;
+    }
+    TrackPendingString(ctx, constant);
+    return ctx->SetArgAddress(arg, const_cast<void *>(constant));
 }
 
 JNIEXPORT jlong JNICALL Java_org_angelscript_ScriptContext_nativeGetAddressOfArg(JNIEnv *env,

@@ -570,8 +570,95 @@ jclass FindClass(JNIEnv *env, const char *name) {
     return local;
 }
 
-jobject MakeMessageType(JNIEnv *env, int value) {
-    struct Cache {
+namespace {
+
+asIStringFactory *GetFactory(asIScriptEngine *engine) {
+    if (engine == nullptr) {
+        return nullptr;
+    }
+    asDWORD flags = 0;
+    asIStringFactory *factory = nullptr;
+    engine->GetStringFactory(&flags, &factory);
+    return factory;
+}
+
+}  // namespace
+
+jstring ReadStringValue(JNIEnv *env, asIScriptEngine *engine, void *value) {
+    if (value == nullptr) {
+        return nullptr;
+    }
+    asIStringFactory *factory = GetFactory(engine);
+    if (factory == nullptr) {
+        return nullptr;
+    }
+    asUINT length = 0;
+    if (factory->GetRawStringData(value, nullptr, &length) != asSUCCESS) {
+        return nullptr;
+    }
+    std::vector<char> buffer(length + 1);
+    if (length > 0) {
+        asUINT actual = length;
+        if (factory->GetRawStringData(value, buffer.data(), &actual) != asSUCCESS) {
+            return nullptr;
+        }
+        length = actual;
+    }
+    return FromUtf8(env, std::string(buffer.data(), length));
+}
+
+const void *CreateStringConstant(asIScriptEngine *engine, const std::string &text) {
+    asIStringFactory *factory = GetFactory(engine);
+    if (factory == nullptr) {
+        return nullptr;
+    }
+    return factory->GetStringConstant(text.c_str(), static_cast<asUINT>(text.size()));
+}
+
+namespace {
+
+std::mutex &PendingMutex() {
+    static std::mutex mutex;
+    return mutex;
+}
+
+std::unordered_map<asIScriptContext *, std::vector<const void *>> &PendingStrings() {
+    static std::unordered_map<asIScriptContext *, std::vector<const void *>> map;
+    return map;
+}
+
+}  // namespace
+
+void TrackPendingString(asIScriptContext *ctx, const void *constant) {
+    if (ctx == nullptr || constant == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(PendingMutex());
+    PendingStrings()[ctx].push_back(constant);
+}
+
+void ReleasePendingStrings(asIScriptContext *ctx) {    std::vector<const void *> constants;
+    {
+        std::lock_guard<std::mutex> lock(PendingMutex());
+        auto it = PendingStrings().find(ctx);
+        if (it == PendingStrings().end()) {
+            return;
+        }
+        constants = it->second;
+        PendingStrings().erase(it);
+    }
+
+    asIScriptEngine *engine = ctx != nullptr ? ctx->GetEngine() : nullptr;
+    asIStringFactory *factory = GetFactory(engine);
+    if (factory == nullptr) {
+        return;
+    }
+    for (const void *constant : constants) {
+        factory->ReleaseStringConstant(constant);
+    }
+}
+
+jobject MakeMessageType(JNIEnv *env, int value) {    struct Cache {
         std::mutex mutex;
         jclass cls = nullptr;
         jobject values[3] = {nullptr, nullptr, nullptr};
@@ -615,8 +702,7 @@ jobject MakeMessageType(JNIEnv *env, int value) {
     return env->NewLocalRef(cache.values[index]);
 }
 
-jlong GetPtr(JNIEnv *env, jobject thiz) {
-    struct Cache {
+jlong GetPtr(JNIEnv *env, jobject thiz) {    struct Cache {
         std::mutex mutex;
         std::unordered_map<jclass, jfieldID> fields;
     };

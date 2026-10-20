@@ -92,6 +92,16 @@ public final class ScriptGeneric {
         return nativeGetArgAddress(arg);
     }
 
+    /**
+     * Reads an argument that holds an AngelScript string.
+     *
+     * @param arg the index of the argument
+     * @return the value of the argument, or null when the argument is not a string
+     */
+    public String getArgString(int arg) {
+        return nativeGetArgString(arg);
+    }
+
     public long getArgObject(int arg) {
         return nativeGetArgObject(arg);
     }
@@ -138,6 +148,16 @@ public final class ScriptGeneric {
         return nativeSetReturnObject(obj);
     }
 
+    /**
+     * Sets the return value of the call to an AngelScript string.
+     *
+     * @param value the value to return
+     * @return 0 on success
+     */
+    public int setReturnString(String value) {
+        return nativeSetReturnString(value);
+    }
+
     public long getAddressOfReturnLocation() {
         return nativeGetAddressOfReturnLocation();
     }
@@ -176,6 +196,8 @@ public final class ScriptGeneric {
 
     private native long nativeGetAddressOfArg(int arg);
 
+    private native String nativeGetArgString(int arg);
+
     private native int nativeGetReturnTypeId();
 
     private native int nativeSetReturnByte(byte val);
@@ -193,6 +215,8 @@ public final class ScriptGeneric {
     private native int nativeSetReturnAddress(long addr);
 
     private native int nativeSetReturnObject(long obj);
+
+    private native int nativeSetReturnString(String value);
 
     private native long nativeGetAddressOfReturnLocation();
 }

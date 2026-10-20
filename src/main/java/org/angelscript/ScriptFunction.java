@@ -11,6 +11,16 @@ public final class ScriptFunction {
         this.ptr = ptr;
     }
 
+    /**
+     * Creates a wrapper around a native {@code asIScriptFunction *}.
+     *
+     * <p>Used for function handles that the engine hands out, such as the delegates that scripts
+     * pass to the registered callbacks.</p>
+     */
+    public static ScriptFunction fromNativeHandle(long ptr) {
+        return new ScriptFunction(ptr);
+    }
+
     /** @return the native {@code asIScriptFunction *} pointer. */
     long nativePtr() {
         return ptr;

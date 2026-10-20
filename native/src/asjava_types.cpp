@@ -1189,6 +1189,33 @@ JNIEXPORT jint JNICALL Java_org_angelscript_ScriptGeneric_nativeSetReturnObject(
     return generic->SetReturnObject(reinterpret_cast<void *>(static_cast<intptr_t>(obj)));
 }
 
+JNIEXPORT jstring JNICALL Java_org_angelscript_ScriptGeneric_nativeGetArgString(JNIEnv *env,
+                                                                             jobject thiz,
+                                                                             jint arg) {
+    asIScriptGeneric *generic = GenericOf(GetPtr(env, thiz));
+    if (generic == nullptr) {
+        return nullptr;
+    }
+    void *address = generic->GetArgAddress(static_cast<asUINT>(arg));
+    return ReadStringValue(env, generic->GetEngine(), address);
+}
+
+JNIEXPORT jint JNICALL Java_org_angelscript_ScriptGeneric_nativeSetReturnString(JNIEnv *env,
+                                                                               jobject thiz,
+                                                                               jstring value) {
+    asIScriptGeneric *generic = GenericOf(GetPtr(env, thiz));
+    if (generic == nullptr) {
+        return asERROR;
+    }
+    const std::string text = ToUtf8(env, value);
+    const void *constant = CreateStringConstant(generic->GetEngine(), text);
+    if (constant == nullptr) {
+        return asINVALID_TYPE;
+    }
+    const int r = generic->SetReturnObject(const_cast<void *>(constant));
+    return r;
+}
+
 JNIEXPORT jlong JNICALL Java_org_angelscript_ScriptGeneric_nativeGetAddressOfReturnLocation(
         JNIEnv *env, jobject thiz) {
     (void)env;

@@ -148,6 +148,15 @@ public final class ScriptContext implements AutoCloseable {
         return nativeSetArgVarType(arg, ptr, typeId);
     }
 
+    /**
+     * Sets an argument that holds an AngelScript string.
+     *
+     * <p>The string stays alive until the context executes.</p>
+     */
+    public int setArgString(int arg, String value) {
+        return nativeSetArgString(arg, value);
+    }
+
     public long getAddressOfArg(int arg) {
         return nativeGetAddressOfArg(arg);
     }
@@ -378,6 +387,8 @@ public final class ScriptContext implements AutoCloseable {
     private native int nativeSetArgObject(int arg, long obj);
 
     private native int nativeSetArgVarType(int arg, long ptr, int typeId);
+
+    private native int nativeSetArgString(int arg, String value);
 
     private native long nativeGetAddressOfArg(int arg);
 

@@ -98,6 +98,19 @@ jclass FindClass(JNIEnv *env, const char *name);
 // Builds the org.angelscript.MessageType enum instance for the given native value.
 jobject MakeMessageType(JNIEnv *env, int value);
 
+// Reads an AngelScript string value into a Java string. The value must be the address of a
+// string value, as returned by asIScriptGeneric::GetArgAddress.
+jstring ReadStringValue(JNIEnv *env, asIScriptEngine *engine, void *value);
+
+// Creates an AngelScript string constant from a Java string.
+const void *CreateStringConstant(asIScriptEngine *engine, const std::string &text);
+
+// Releases the string constants that were created for the arguments of a context.
+void ReleasePendingStrings(asIScriptContext *ctx);
+
+// Keeps a string constant alive until the context executes.
+void TrackPendingString(asIScriptContext *ctx, const void *constant);
+
 // Reads the "ptr" field of a Java wrapper object.
 jlong GetPtr(JNIEnv *env, jobject thiz);
 
