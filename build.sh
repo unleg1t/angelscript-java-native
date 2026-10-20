@@ -89,7 +89,7 @@ build_java() {
     mkdir -p "$CLASSES_DIR"
     find "$ROOT/src/main/java" -name '*.java' > "$BUILD_DIR/sources.txt"
     # Ensure forward slashes so that javac can read the list on every platform.
-    sed -i 's/\\\\/\\//g' "$BUILD_DIR/sources.txt"
+    sed -i 's#\\#/#g' "$BUILD_DIR/sources.txt"
     "$JAVAC" -Xlint:all -d "$CLASSES_DIR" @"$BUILD_DIR/sources.txt"
 
     echo "==> Copying the prebuilt native libraries"
@@ -109,7 +109,7 @@ build_tests() {
     rm -rf "$TEST_CLASSES_DIR"
     mkdir -p "$TEST_CLASSES_DIR"
     find "$ROOT/src/test/java" -name '*.java' > "$BUILD_DIR/test-sources.txt"
-    sed -i 's/\\\\/\\//g' "$BUILD_DIR/test-sources.txt"
+    sed -i 's#\\#/#g' "$BUILD_DIR/test-sources.txt"
     "$JAVAC" -cp "$CLASSES_DIR" -d "$TEST_CLASSES_DIR" @"$BUILD_DIR/test-sources.txt"
 }
 
