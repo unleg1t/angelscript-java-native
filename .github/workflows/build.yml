@@ -1,0 +1,91 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x86_64
+            os: ubuntu-latest
+            platform: linux-x86_64
+          - name: Linux aarch64
+            os: ubuntu-24.04-arm
+            platform: linux-aarch64
+          - name: Windows x86_64
+            os: windows-latest
+            platform: windows-x86_64
+          - name: macOS x86_64
+            os: macos-13
+            platform: macos-x86_64
+          - name: macOS aarch64
+            os: macos-14
+            platform: macos-aarch64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build and test
+        shell: bash
+        run: |
+          ./build.sh test
+
+      - name: Package
+        shell: bash
+        run: ./build.sh jar
+
+      - name: Upload the native library
+        uses: actions/upload-artifact@v4
+        with:
+          name: angelscript-jni-${{ matrix.platform }}
+          path: prebuilt/${{ matrix.platform }}/**
+
+  package:
+    name: package
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the native libraries
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect the native libraries
+        run: |
+          for dir in artifacts/*/; do
+            name="$(basename "$dir")"
+            name="${name#angelscript-jni-}"
+            mkdir -p "prebuilt/$name"
+            find "$dir" -type f -exec cp {} "prebuilt/$name/" \;
+          done
+
+      - name: Build the jar
+        run: |
+          export JAVA_HOME="${JAVA_HOME:-$(dirname $(dirname $(readlink -f $(which javac))))}"
+          ./build.sh java
+          mkdir -p build
+          jar --create --file build/angelscript-java-native.jar -C build/resources .
+
+      - name: Upload the jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: angelscript-java-native
+          path: build/angelscript-java-native.jar

@@ -23,6 +23,9 @@
 *.dll
 *.so.*
 
+# ...but the prebuilt native libraries are part of the distribution
+!prebuilt/**
+
 # Fortran module files
 *.mod
 *.smod
@@ -66,3 +69,10 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Compiler probe files
+/-
+
+# Crash logs
+hs_err_pid*.log
+core.*
