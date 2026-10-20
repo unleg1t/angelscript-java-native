@@ -172,8 +172,18 @@ set(ADDON_SOURCE
 # cross compiling for Windows.
 if(WIN32)
     find_file(WINDOWS_SDK_HEADER Windows.h
-              HINTS $ENV{WindowsSdkDir}/Include
+              HINTS "$ENV{WindowsSdkDir}/Include" "$ENV{WindowsSdkDir}/Include/10.0.22000.0/um"
+              "$ENV{WindowsSdkDir}/Include/10.0.22621.0/um" "$ENV{WindowsSdkDir}/Include/10.0.26100.0/um"
               NO_CMAKE_FIND_ROOT_PATH)
+    if(NOT WINDOWS_SDK_HEADER)
+        file(GLOB WINDOWS_SDK_CANDIDATES "$ENV{WindowsSdkDir}/Include/*/um" "C:/Program Files (x86)/Windows Kits/*/Include/*/um")
+        foreach(candidate ${WINDOWS_SDK_CANDIDATES})
+            if(EXISTS "${candidate}/Windows.h")
+                set(WINDOWS_SDK_HEADER "${candidate}/Windows.h")
+                break()
+            endif()
+        endforeach()
+    endif()
     if(WINDOWS_SDK_HEADER)
         list(APPEND ADDON_SOURCE ${AS_ADDON_DIR}/scriptfile/scriptfilesystem.cpp)
         set(AS_JNI_FILE_SYSTEM ON)

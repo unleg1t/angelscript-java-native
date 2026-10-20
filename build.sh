@@ -58,6 +58,12 @@ detect_platform() {
 
 PLATFORM="$(detect_platform)"
 
+# Classpath separator differs between Windows and POSIX systems.
+case "$PLATFORM" in
+    windows-*) CP_SEP=";" ;;
+    *) CP_SEP=":" ;;
+esac
+
 build_native() {
     echo "==> Building the native library for $PLATFORM"
     cmake -S "$ROOT/native" -B "$BUILD_DIR/native-$PLATFORM" \
@@ -106,7 +112,7 @@ build_tests() {
 
 run_tests() {
     echo "==> Running the tests"
-    "$JAVA" -cp "$CLASSES_DIR:$TEST_CLASSES_DIR" \
+    "$JAVA" -cp "$CLASSES_DIR${CP_SEP}$TEST_CLASSES_DIR" \
         -Dangelscript.native.path="$ROOT/prebuilt/$PLATFORM" \
         org.angelscript.TestRunner
 }

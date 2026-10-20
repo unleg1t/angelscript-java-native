@@ -1,0 +1,4 @@
+# Force LF line endings for text files so the build scripts work on every platform.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
