@@ -87,13 +87,8 @@ build_java() {
     echo "==> Compiling the Java sources"
     rm -rf "$CLASSES_DIR"
     mkdir -p "$CLASSES_DIR"
-    find "$ROOT/src/main/java" -name '*.java' > "$BUILD_DIR/sources.txt"
-    # Ensure forward slashes so that javac can read the list on every platform.
-    if [ "${PLATFORM%%-*}" = "windows" ]; then
-        sed -i.bak 's#\\#/#g' "$BUILD_DIR/sources.txt"
-        rm -f "$BUILD_DIR/sources.txt.bak"
-    fi
-    "$JAVAC" -Xlint:all -d "$CLASSES_DIR" @"$BUILD_DIR/sources.txt"
+    (cd "$ROOT" && find src/main/java -name '*.java') > "$BUILD_DIR/sources.txt"
+    (cd "$ROOT" && "$JAVAC" -Xlint:all -d "$CLASSES_DIR" @"$BUILD_DIR/sources.txt")
 
     echo "==> Copying the prebuilt native libraries"
     rm -rf "$RESOURCES_DIR"
@@ -111,19 +106,15 @@ build_tests() {
     echo "==> Compiling the tests"
     rm -rf "$TEST_CLASSES_DIR"
     mkdir -p "$TEST_CLASSES_DIR"
-    find "$ROOT/src/test/java" -name '*.java' > "$BUILD_DIR/test-sources.txt"
-    if [ "${PLATFORM%%-*}" = "windows" ]; then
-        sed -i.bak 's#\\#/#g' "$BUILD_DIR/test-sources.txt"
-        rm -f "$BUILD_DIR/test-sources.txt.bak"
-    fi
-    "$JAVAC" -cp "$CLASSES_DIR" -d "$TEST_CLASSES_DIR" @"$BUILD_DIR/test-sources.txt"
+    (cd "$ROOT" && find src/test/java -name '*.java') > "$BUILD_DIR/test-sources.txt"
+    (cd "$ROOT" && "$JAVAC" -cp "$CLASSES_DIR" -d "$TEST_CLASSES_DIR" @"$BUILD_DIR/test-sources.txt")
 }
 
 run_tests() {
     echo "==> Running the tests"
-    "$JAVA" -cp "$CLASSES_DIR${CP_SEP}$TEST_CLASSES_DIR" \
-        -Dangelscript.native.path="$ROOT/prebuilt/$PLATFORM" \
-        org.angelscript.TestRunner
+    (cd "$ROOT" && "$JAVA" -cp "build/classes${CP_SEP}build/test-classes" \
+        -Dangelscript.native.path="prebuilt/$PLATFORM" \
+        org.angelscript.TestRunner)
 }
 
 build_jar() {

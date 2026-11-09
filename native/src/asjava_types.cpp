@@ -388,10 +388,10 @@ JNIEXPORT jstring JNICALL Java_org_angelscript_TypeInfo_nativeGetEnumValueByInde
     if (type == nullptr) {
         return nullptr;
     }
-    int value = 0;
+    asINT64 value = 0;
     const char *name = type->GetEnumValueByIndex(static_cast<asUINT>(index), &value);
     if (outValue != nullptr) {
-        jint javaValue = value;
+        jint javaValue = static_cast<jint>(value);
         env->SetIntArrayRegion(outValue, 0, 1, &javaValue);
     }
     return name == nullptr ? nullptr : FromUtf8(env, name);
@@ -401,7 +401,7 @@ JNIEXPORT jint JNICALL Java_org_angelscript_TypeInfo_nativeGetTypedefTypeId(JNIE
                                                                             jobject thiz) {
     (void)env;
     asITypeInfo *type = TypeInfoOf(GetPtr(env, thiz));
-    return type == nullptr ? 0 : type->GetTypedefTypeId();
+    return type == nullptr ? 0 : type->GetUnderlyingTypeId();
 }
 
 JNIEXPORT jlong JNICALL Java_org_angelscript_TypeInfo_nativeGetFuncdefSignature(JNIEnv *env,
@@ -903,7 +903,20 @@ JNIEXPORT jint JNICALL Java_org_angelscript_ScriptFunction_nativeFindNextLineWit
         JNIEnv *env, jobject thiz, jint line) {
     (void)env;
     asIScriptFunction *func = FunctionOf(GetPtr(env, thiz));
-    return func == nullptr ? 0 : func->FindNextLineWithCode(line);
+    if (func == nullptr) {
+        return 0;
+    }
+
+    int nextLine = -1;
+    const int count = func->GetLineEntryCount();
+    for (int index = 0; index < count; ++index) {
+        int row = 0;
+        if (func->GetLineEntry(static_cast<asUINT>(index), &row, nullptr, nullptr, nullptr) >= 0
+                && row >= line && (nextLine < 0 || row < nextLine)) {
+            nextLine = row;
+        }
+    }
+    return nextLine;
 }
 
 JNIEXPORT jint JNICALL Java_org_angelscript_ScriptFunction_nativeGetDeclaredAtRow(JNIEnv *env,

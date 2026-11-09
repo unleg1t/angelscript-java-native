@@ -33,7 +33,7 @@ public final class AngelScriptEngine implements AutoCloseable {
         return new AngelScriptEngine(ptr);
     }
 
-    /** @return the version of the AngelScript library, e.g. {@code "2.38.0"}. */
+    /** @return the version of the AngelScript library, e.g. {@code "2.39.0"}. */
     public static String getLibraryVersion() {
         return nativeLibraryVersion();
     }
