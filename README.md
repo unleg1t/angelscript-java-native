@@ -7,7 +7,7 @@ add-ons and is prebuilt for **Linux**, **Windows** and **macOS** (x86_64 and arm
 The Java API mirrors the AngelScript C++ API one to one, so everything that can be done with
 AngelScript from C++ can be done from Java as well.
 
-* AngelScript version: **2.38.0**
+* AngelScript version: **2.39.0**
 * Java version: **11** or newer
 * Native libraries: `linux-x86_64`, `linux-aarch64`, `windows-x86_64`, `macos-x86_64`,
   `macos-aarch64`
