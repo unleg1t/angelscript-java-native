@@ -112,9 +112,9 @@ build_tests() {
 
 run_tests() {
     echo "==> Running the tests"
-    "$JAVA" -cp "$CLASSES_DIR${CP_SEP}$TEST_CLASSES_DIR" \
-        -Dangelscript.native.path="$ROOT/prebuilt/$PLATFORM" \
-        org.angelscript.TestRunner
+    (cd "$ROOT" && "$JAVA" -cp "build/classes${CP_SEP}build/test-classes" \
+        -Dangelscript.native.path="prebuilt/$PLATFORM" \
+        org.angelscript.TestRunner)
 }
 
 build_jar() {
