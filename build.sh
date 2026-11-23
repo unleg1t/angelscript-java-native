@@ -88,7 +88,7 @@ build_java() {
     rm -rf "$CLASSES_DIR"
     mkdir -p "$CLASSES_DIR"
     (cd "$ROOT" && find src/main/java -name '*.java') > "$BUILD_DIR/sources.txt"
-    (cd "$ROOT" && "$JAVAC" -Xlint:all -d "$CLASSES_DIR" @"$BUILD_DIR/sources.txt")
+    (cd "$ROOT" && "$JAVAC" --release 11 -Xlint:all -d "$CLASSES_DIR" @"$BUILD_DIR/sources.txt")
 
     echo "==> Copying the prebuilt native libraries"
     rm -rf "$RESOURCES_DIR"
@@ -107,7 +107,7 @@ build_tests() {
     rm -rf "$TEST_CLASSES_DIR"
     mkdir -p "$TEST_CLASSES_DIR"
     (cd "$ROOT" && find src/test/java -name '*.java') > "$BUILD_DIR/test-sources.txt"
-    (cd "$ROOT" && "$JAVAC" -cp "$CLASSES_DIR" -d "$TEST_CLASSES_DIR" @"$BUILD_DIR/test-sources.txt")
+    (cd "$ROOT" && "$JAVAC" --release 11 -cp "$CLASSES_DIR" -d "$TEST_CLASSES_DIR" @"$BUILD_DIR/test-sources.txt")
 }
 
 run_tests() {
